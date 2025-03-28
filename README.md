@@ -1,6 +1,7 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/XpvI6cTa)
 
 # STARTING
+<<<<<<< HEAD
 I set up the folder and now i ll begin to code this week, had a long week from exams.
 
 # FRIDAY 28TH OF MARCH 2025
@@ -135,3 +136,6 @@ How It Was Used: I used ChatGPT to generate a clear breakdown of the fetch and d
 
 
 
+=======
+I set up the folder and now i ll begin to code this week, had a long week from exams.
+>>>>>>> a76e8d97d622dce48af7fe7547b230ca94c45eb0
