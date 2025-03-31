@@ -605,30 +605,52 @@ I should be within valid CHIP-8 memory (typically 0x000 to 0xFFF for a 4KB syste
 Checking I >= 0x2000 makes no sense since CHIP-8 has only 4KB of memory (0x1000 max).
 
 A better check would be:
-
-plaintext
-Copy
-Edit
 IF I < 0x200 OR I >= memory_size THEN
     Print "Invalid I value"
 ELSE
     Draw sprite
 END IF
 The 0x200 lower bound ensures I doesn’t access the reserved interpreter memory (font data).
+Prompt:
+so now in 0XD000 how can it make sure it works
 
-Edit:
+
+Response:
 case 0xD000:
-        uint8_t x = chip8_register_read(X);
-        uint8_t y = chip8_register_read(Y);
-        uint8_t height = n;
-        uint16_t addr = I;
-        if (addr  >= 0x1000) {
-            printf("Invalid Access in memory, in draw sprite , I = %X\n", addr);
-        } else {
-            int collision = chip8_draw_sprite(addr,x,y,height);
-            chip8_register_write(0xF,collision);
-        }
-        break;
+    // Extract the Y coordinate and the sprite height (N) from the opcode
+    uint8_t height = n;  // Height of the sprite (N)
+    uint8_t x_coord = chip8_register_read(X); // X-coordinate (from VX)
+    uint8_t y_coord = chip8_register_read(Y); // Y-coordinate (from VY)
+    
+    // Ensure that the X and Y coordinates are within the screen bounds
+    x_coord &= 0x3F; // X should be between 0 and 63 (screen width)
+    y_coord &= 0x1F; // Y should be between 0 and 31 (screen height)
+
+    // Check that the I register points to a valid memory location
+    if (I >= 0x1000) {
+        printf("Invalid memory access in chip8_draw_sprite. I = %X\n", I);
+    } else {
+        // Call the draw sprite function to render the sprite
+        int collision = chip8_draw_sprite(I, x_coord, y_coord, height);
+        
+        // If a collision occurred, set the VF register (collision flag)
+        chip8_register_write(0xF, collision); // VF register is the last register
+    }
+    break;
+
+Final Edit:
+case 0xD000:
+    uint8_t x = chip8_register_read(X);
+    uint8_t y = chip8_register_read(Y);
+    uint8_t height = n;
+    uint16_t addr = I;
+    if (addr  >= 0x1000) {
+        printf("Invalid Access in memory, in draw sprite , I = %X\n", addr);
+    } else {
+        int collision = chip8_draw_sprite(addr,x,y,height);
+        chip8_register_write(0xF,collision);
+    }
+    break;
 After many edits, (will update this part tomorrow)
 12th Prompt:
 do i need to implement 0x200 
@@ -662,12 +684,12 @@ END IF
 
 13th Prompt:
 case 0x00EE:
-        if (stack == 0) {
-            printf("Stack Underflow error \n");
-        } else {
-            sp--;
-            pc = stack[sp];
-        }
+    if (stack == 0) {
+        printf("Stack Underflow error \n");
+    } else {
+        sp--;
+        pc = stack[sp];
+    }
 Response:
 Your implementation is almost correct, but there's a small issue:
 
@@ -684,14 +706,300 @@ case 0x00EE:
         pc = stack[sp];  // Pop the last stored address into pc
     }
     break;
+Prompt:
+so what does this error mean: PS C:\msys64\home\Furnom Dam\chip8Emulator> gcc -o chip8 sdl-basecode.c mychip8.c -lSDL -lm
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0x0): multiple definition of `chip8_mem_read'; C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0x0): first defined here
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0x22): multiple definition of `chip8_mem_write'; C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0x22): first defined here
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0x4d): multiple definition of `chip8_register_read'; C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0x4d): first defined here
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0x94): multiple definition of `chip8_register_write'; C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0x94): first defined here
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0xc7): multiple definition of `chip8_clear_frame'; C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0xc7): first defined here
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0xf0): multiple definition of `chip8_mem_clear'; C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0xf0): first defined here
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0x119): multiple definition of `chip8_draw_sprite'; C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0x119): first defined here
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0x482): multiple definition of `chip8_mem_reset'; C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0x482): first defined here
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0x638): multiple definition of `fill_audio'; C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0x638): first defined here
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0x9a7): multiple definition of `SDL_main'; C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0x9a7): first defined here
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0x782): undefined reference to `chip8_reset'
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0xb6e): undefined reference to `chip8_reset'
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\cck5CNzB.o:sdl-basecode.c:(.text+0xce4): undefined reference to `chip8_shutdown'
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0x782): undefined reference to `chip8_reset'
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0xb6e): undefined reference to `chip8_reset'
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Users\FURNOM~1\AppData\Local\Temp\ccWgVYLU.o:mychip8.c:(.text+0xce4): undefined reference to `chip8_shutdown'
+C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:/msys64/ucrt64/bin/../lib/gcc/x86_64-w64-mingw32/14.2.0/../../../../lib/libmingw32.a(lib64_libmingw32_a-crtexewin.o): in function `main':
+C:/M/B/src/mingw-w64/mingw-w64-crt/crt/crtexewin.c:67:(.text.startup+0xc5): undefined reference to `WinMain'
+collect2.exe: error: ld returned 1 exit status
+PS C:\msys64\home\Furnom Dam\chip8Emulator>
+Response:
+The error you're encountering suggests a few issues related to multiple definitions of the same functions and missing references to others. Here's a breakdown of the key problems and how to address them:
+
+1. Multiple Definition Errors
+Problem: The error mentions "multiple definition of" for various functions like chip8_mem_read, chip8_mem_write, chip8_register_read, and so on. This typically occurs when the same function is defined in multiple source files.
+
+Cause: It looks like both mychip8.c and sdl-basecode.c are defining these functions, which results in the linker encountering multiple definitions.
+
+Solution:
+
+Ensure that these functions are only defined once. If both source files need to access these functions, you should declare them in a shared header file (chip8.h) and only define them in mychip8.c or wherever appropriate. Then, include that header file in both mychip8.c and sdl-basecode.c.
+
+Example:
+
+
+// chip8.h
+void chip8_mem_read();
+void chip8_mem_write();
+// etc.
+
+// mychip8.c
+#include "chip8.h"
+void chip8_mem_read() {
+    // Implementation
+}
+If you're using the functions in both files, ensure that they are not defined in both places, only declared in the header and defined in one source file.
+
+2. Undefined Reference Errors
+Problem: The linker is unable to find the definitions for chip8_reset and chip8_shutdown as it says "undefined reference to chip8_reset".
+
+Cause: These functions might be declared, but their definitions are missing or not linked correctly.
+
+Solution: Ensure that chip8_reset and chip8_shutdown are properly defined in one of your source files and are declared in the header file.
+
+3. WinMain Undefined
+Problem: The error undefined reference to WinMain usually occurs when compiling a Windows application. This happens when the linker expects WinMain as the entry point (for Windows GUI applications), but instead, it found a standard main() function.
+
+Solution:
+
+If you're writing a console application, ensure that you link against the correct version of the runtime.
+
+If using SDL, which generally uses main, you might want to ensure you're linking it as a console app:
+
+Try adding the -Dmain=SDL_main flag to your gcc command to redefine the entry point to SDL_main.
+
+gcc -Dmain=SDL_main -o chip8 sdl-basecode.c mychip8.c -lSDL -lm
+4. General Advice
+Double-check your function declarations and definitions to ensure they are not duplicated.
+
+Make sure you're linking your libraries correctly and that all required object files are included.
+
+Use the #ifndef/#define guards in your header files to prevent multiple inclusions of the same header.
+
+Suggested Next Steps:
+Fix multiple definitions by ensuring each function is only defined once, and declare them in a common header file.
+
+Add missing function definitions for chip8_reset and chip8_shutdown.
+
+Use -Dmain=SDL_main to resolve the WinMain issue if you're working with SDL.
+
+Let me know if you'd like further clarification or help implementing any of these fixes!
+
+
+
+Prompt:
+cannot open source file "chip8.h", #include errors detected. Please update your includePath. Squiggles are disabled for this translation unit (C:\msys64\home\Furnom Dam\chip8Emulator\sdl-basecode.c). this is for both myChip8.c and sdl-basecode.c
+
+
+Response:
+The error message you're encountering suggests that the compiler can't find the chip8.h file when it tries to include it. This can happen if the file is not in the right location or if the includePath in your development environment is not properly set up.
+
+Here's how you can resolve this:
+
+1. Ensure chip8.h is in the Correct Directory
+Make sure the chip8.h file is in the same directory as your .c files (i.e., in the chip8Emulator folder).
+
+Your project directory structure should look like this:
+
+
+chip8Emulator/
+  ├── chip8.h        // Your header file
+  ├── mychip8.c      // Your C source file
+  ├── sdl-basecode.c // Your SDL base code
+  └── Makefile       // (If applicable)
+2. Update includePath in Visual Studio Code (VS Code)
+If you're using Visual Studio Code, you need to set the includePath so that the compiler knows where to find chip8.h.
+
+To do this:
+
+Open your project folder in VS Code.
+
+Go to File -> Preferences -> Settings.
+
+In the search bar, type C++ to filter relevant settings.
+
+Scroll down to find C_Cpp: Include Path (for C or C++ projects).
+
+Click Edit in settings.json.
+
+Add the path to your project directory (where chip8.h is located) to includePath. For example:
+
+
+"includePath": [
+    "${workspaceFolder}/**",
+    "${workspaceFolder}/chip8Emulator"
+],
+This will tell the compiler to look in your project folder (chip8Emulator in this case) for headers like chip8.h.
+
+3. Use Absolute Path (Temporary)
+If you're still facing issues, you can use the absolute path in your #include directive for testing purposes. Change the #include line in both mychip8.c and sdl-basecode.c like this:
+
+
+#include "C:/msys64/home/Furnom Dam/chip8Emulator/chip8.h"
+This way, you are explicitly telling the compiler where to find chip8.h.
+
+4. Check Compiler Command
+When you compile with gcc, ensure that you are in the correct directory (chip8Emulator) where your source files and header files are located. The gcc command should work as expected if you are in the directory with your .c files.
+
+
+gcc -o chip8 sdl-basecode.c mychip8.c -lSDL -lm
+Summary:
+Ensure chip8.h is in the same directory as your .c files or adjust the includePath if using an IDE like VS Code.
+
+You may also use the absolute path to the header temporarily to test.
+
+Recompile after making sure everything is in the correct location.
+
+Let me know if this fixes the issue or if you need more help!
+
+
+PROMPT:
+so i cant change sdl-basecode.c my teacher disallows it but however I fixed the issue using the temp path on myChip8.c but now when I compiled it again, it showed this: PS C:\msys64\home\Furnom Dam\chip8Emulator> gcc -o chip8 sdl-basecode.c mychip8.c -lSDL -lm
+mychip8.c:14:9: error: conflicting types for 'chip8_mem_read'; have 'uint8_t(uint16_t)' {aka 'unsigned char(short unsigned int)'}        
+   14 | uint8_t chip8_mem_read(uint16_t addr);
+      |         ^~~~~~~~~~~~~~
+In file included from mychip8.c:10:
+C:/msys64/home/Furnom Dam/chip8Emulator/project-ZanyDruid20/chip8.h:8:6: note: previous declaration of 'chip8_mem_read' with type 'void( '
+    8 | void chip8_mem_read();
+      |      ^~~~~~~~~~~~~~
+mychip8.c:15:6: error: conflicting types for 'chip8_mem_write'; have 'void(uint16_t,  uint8_t)' {aka 'void(short unsigned int,  unsigned char)'}
+   15 | void chip8_mem_write(uint16_t addr, uint8_t val);
+      |      ^~~~~~~~~~~~~~~
+mychip8.c:15:1: note: an argument type that has a default promotion cannot match an empty parameter name list declaration
+   15 | void chip8_mem_write(uint16_t addr, uint8_t val);
+      | ^~~~
+C:/msys64/home/Furnom Dam/chip8Emulator/project-ZanyDruid20/chip8.h:9:6: note: previous declaration of 'chip8_mem_write' with type 'void()'
+    9 | void chip8_mem_write();
+      |      ^~~~~~~~~~~~~~~
+mychip8.c:16:9: error: conflicting types for 'chip8_register_read'; have 'uint8_t(uint8_t)' {aka 'unsigned char(unsigned char)'}
+   16 | uint8_t chip8_register_read(uint8_t reg);
+      |         ^~~~~~~~~~~~~~~~~~~
+C:/msys64/home/Furnom Dam/chip8Emulator/project-ZanyDruid20/chip8.h:14:6: note: previous declaration of 'chip8_register_read' with type  void()'
+   14 | void chip8_register_read();
+      |      ^~~~~~~~~~~~~~~~~~~
+mychip8.c:17:6: error: conflicting types for 'chip8_register_write'; have 'void(uint8_t,  uint8_t)' {aka 'void(unsigned char,  unsigned char)'}
+   17 | void chip8_register_write(uint8_t reg, uint8_t val);
+      |      ^~~~~~~~~~~~~~~~~~~~
+mychip8.c:17:1: note: an argument type that has a default promotion cannot match an empty parameter name list declaration
+   17 | void chip8_register_write(uint8_t reg, uint8_t val);
+      | ^~~~
+C:/msys64/home/Furnom Dam/chip8Emulator/project-ZanyDruid20/chip8.h:15:6: note: previous declaration of 'chip8_register_write' with type 'void()'
+   15 | void chip8_register_write();
+      |      ^~~~~~~~~~~~~~~~~~~~
+mychip8.c:20:5: error: conflicting types for 'chip8_draw_sprite'; have 'int(uint16_t,  uint8_t,  uint8_t,  uint8_t)' {aka 'int(short unsigned int,  unsigned char,  unsigned char,  unsigned char)'}
+   20 | int chip8_draw_sprite(uint16_t addr, uint8_t x, uint8_t y, uint8_t height);
+      |     ^~~~~~~~~~~~~~~~~
+C:/msys64/home/Furnom Dam/chip8Emulator/project-ZanyDruid20/chip8.h:19:6: note: previous declaration of 'chip8_draw_sprite' with type 'void()'
+   19 | void chip8_draw_sprite();
+      |      ^~~~~~~~~~~~~~~~~ there are two options I'm thinking in my head should I one edit the temp path to remove chip8.h and instead include sdl-basecode.c because those functions are defined there
+
+
+Response:
+// chip8.h
+
+// Match the function signatures with their definitions in mychip8.c
+uint8_t chip8_mem_read(uint16_t addr);         // Corrected function signature
+void chip8_mem_write(uint16_t addr, uint8_t val);
+uint8_t chip8_register_read(uint8_t reg);
+void chip8_register_write(uint8_t reg, uint8_t val);
+int chip8_draw_sprite(uint16_t addr, uint8_t x, uint8_t y, uint8_t height);
+
+// Add other function declarations as needed
+Prompt:
+// chip8.h
+#ifndef CHIP8_H
+#define CHIP8_H
+
+// Function Declarations for CHIP-8 operations
+
+// Memory operations
+void chip8_mem_read();
+void chip8_mem_write();
+void chip8_mem_clear();
+void chip8_mem_reset();
+
+// Register operations
+void chip8_register_read();
+void chip8_register_write();
+
+// Screen operations
+void chip8_clear_frame();
+void chip8_draw_sprite();
+
+// System operations
+void chip8_reset();
+void chip8_shutdown();
+void fill_audio();
+
+// SDL related functions
+int SDL_main(int argc, char *argv[]); // SDL's main entry point
+
+#endif // CHIP8_H
+Response:
+It looks like the chip8.h header file you've provided is incomplete, as it declares the functions but doesn't match the function signatures you've shown in your implementation (such as types and parameters). Based on your earlier errors, your function prototypes should include more detail about the parameters and return types for the functions.
+
+Here's an updated version of the header with proper function signatures:
+#ifndef CHIP8_H
+#define CHIP8_H
+
+#include <stdint.h>
+
+// Function Declarations for CHIP-8 operations
+
+// Memory operations
+uint8_t chip8_mem_read(uint16_t addr);     // Read from memory at specified address
+void chip8_mem_write(uint16_t addr, uint8_t val);  // Write value to memory at specified address
+void chip8_mem_clear();                    // Clear the memory
+void chip8_mem_reset();                    // Reset memory
+
+// Register operations
+uint8_t chip8_register_read(uint8_t reg);  // Read the value of a register
+void chip8_register_write(uint8_t reg, uint8_t val);  // Write value to a register
+
+// Screen operations
+void chip8_clear_frame();                  // Clear the screen/frame buffer
+int chip8_draw_sprite(uint16_t addr, uint8_t x, uint8_t y, uint8_t height);  // Draw a sprite at the specified location
+
+// System operations
+void chip8_reset();                        // Reset the CHIP-8 system
+void chip8_shutdown();                     // Shut down the CHIP-8 system
+void fill_audio();                         // Handle the audio (sound)
+
+// SDL related functions
+int SDL_main(int argc, char *argv[]);      // SDL's main entry point
+
+#endif // CHIP8_H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Conclusion
 Even though today Im not able to submit most of the prompts, i promise ill submit the rest because the deadline is fast approaching and i have no time, wll write more on it, from tomorrow, till the end of week.
-Reources:
-ChatGPT for debugging
+# Sunday 30th of March 2025
+Today I made some changes to the read me updated on the 0XD000 and header files implementation, will do more tomorrow
+# Reources:
+ChatGPT: Helped me with the logic, clarification and debugging. 
 Lepuri: https://lepuri.net/making-a-chip-8-emulator-in-c/
 Tobias Langoff: https://tobiasvl.github.io/blog/write-a-chip-8-emulator/
 
 
 
 =======
-I set up the folder and now i ll begin to code this week, had a long week from exams.
 >>>>>>> a76e8d97d622dce48af7fe7547b230ca94c45eb0
