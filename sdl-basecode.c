@@ -6,7 +6,6 @@
 #include <math.h>
 
 #include <SDL/SDL.h>
-//#include "C:/msys64/home/Furnom Dam/chip8Emulator/project-ZanyDruid20/chip8.h"
 
 
 /* You must implement these functions in your code! */
@@ -116,6 +115,7 @@ void chip8_register_write(uint8_t reg, uint8_t val) {
 
 void chip8_clear_frame(void) {
     memset(framebuffer, 0, 64 * 32 * sizeof(uint32_t));
+
 }
 
 void chip8_mem_clear(void) {

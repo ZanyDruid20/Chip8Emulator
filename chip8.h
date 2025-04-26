@@ -24,7 +24,15 @@ void chip8_reset();                        // Reset the CHIP-8 system
 void chip8_shutdown();                     // Shut down the CHIP-8 system
 void fill_audio();                         // Handle the audio (sound)
 
+
 // SDL related functions
 int SDL_main(int argc, char *argv[]);      // SDL's main entry point
+
+/* Key statuses are defined as registers 0x00-0x0F */
+
+#define CHIP8_REG_DT        0x10
+#define CHIP8_REG_ST        0x11
+
+
 
 #endif // CHIP8_H
