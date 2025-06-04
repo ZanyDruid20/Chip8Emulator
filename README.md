@@ -1,7 +1,8 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/XpvI6cTa)
 
 # STARTING
-I set up the folder and now i ll begin to code this week, had a long week from exams.
+This is a CHIP-8 emulator developed for CMSC 411 (Computer Architecture) at UMBC. It implements the CHIP-8 virtual machine from scratch in C, including all major opcode instructions, memory management, keyboard input, and sprite rendering with SDL.
+
 
 # FRIDAY 28TH OF MARCH 2025
 Good Evening I This is my Readme Message for the second day and i initalized the emulator and i started with the execution function by implementing the fetch and decoding and then on the third day im going to implement 10 out of 35 opcodes which means implementing execute, how ever , In the course of implementation I used resources to better help me understand and guide me through the implementation process. One of these resources to help me out was ChatGPT, this were the prompts i gave to it.
