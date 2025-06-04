@@ -1,19 +1,18 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/XpvI6cTa)
 
 # STARTING
 This is a CHIP-8 emulator developed for CMSC 411 (Computer Architecture) at UMBC. It implements the CHIP-8 virtual machine from scratch in C, including all major opcode instructions, memory management, keyboard input, and sprite rendering with SDL.
 
 
 # FRIDAY 28TH OF MARCH 2025
-Good Evening I This is my Readme Message for the second day and i initalized the emulator and i started with the execution function by implementing the fetch and decoding and then on the third day im going to implement 10 out of 35 opcodes which means implementing execute, how ever , In the course of implementation I used resources to better help me understand and guide me through the implementation process. One of these resources to help me out was ChatGPT, this were the prompts i gave to it.
+Initialized the project. Set up folder structure and began the fetch-decode-execute loop.
 
 # SATURDAY 29TH OF MARCH 2025
-USER PROMPT, RESPONSE AND EDITS DOCUMENTS BELOW:
+Started implementing opcodes. Used ChatGPT and CHIP-8 documentation to understand opcode structure and branching logic. See logs here:
 https://docs.google.com/document/d/1lCmzCjgPVxv5Ggl_tuwjT4JsQXTvIpe1bk6676Q8q4k/edit?usp=sharing
 
-
 # SUNDAY 3OTH OF MARCH 2025
-Today I made some changes to the read me updated on the 0XD000 and header files implementation, will do more tomorrow
+Implemented 0xD000 draw opcode and modularized chip8.h. Began work on header files and display.
+
 
 # FRIDAY 18TH OF APRIL 2025
 Finally implemented the registers with an arrays and the IBM logo came out successfully
