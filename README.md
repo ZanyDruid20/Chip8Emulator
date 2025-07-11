@@ -64,5 +64,4 @@ This emulator recreates the classic CHIP-8 system, which was originally designed
 
 ## Video Demo
 ---
-Live Video: https://www.loom.com/share/d018a977d65845d8aa08541ad044d83d?sid=fc08ebe5-71ae-4fec-a684-293b7684ecbc
 
